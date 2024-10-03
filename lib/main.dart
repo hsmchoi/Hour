@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart'; // 로컬 파일 경로를 가져오기 위한 패키지
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 
@@ -85,6 +87,39 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
     });
   }
 
+  // 로컬 저장소에 파일을 저장하는 메소드
+  Future<void> _saveToFile(String content) async {
+    final directory = await getApplicationDocumentsDirectory(); // 저장 폴더 가져오기
+    final folder = Directory('${directory.path}/DailyTimeCapsule');
+    if (!(await folder.exists())) {
+      await folder.create(recursive: true); // 폴더가 없으면 생성
+    }
+
+    final filePath =
+        '${folder.path}/record_${DateTime.now().millisecondsSinceEpoch}.txt'; // 파일 이름 지정
+    final file = File(filePath);
+    await file.writeAsString(content); // 파일에 기록 내용 저장
+    print('기록이 저장되었습니다: $filePath');
+  }
+
+  // 작성 내용을 저장하는 메소드
+  void _saveData() async {
+    String content = '''
+    When: $currentTime
+    Where: $currentLocation
+    What: ${whatController.text}
+    How: $selectedDifficulty
+    Why: $selectedWhyKeyword
+    ''';
+    await _saveToFile(content);
+  }
+
+  // 하트 아이콘 클릭 시 저장된 기록 목록을 보는 화면으로 이동
+  void _navigateToRecordsScreen() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const RecordsScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +136,7 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
         ],
         leading: IconButton(
           icon: const Icon(Icons.favorite, color: Colors.white),
-          onPressed: () {},
+          onPressed: _navigateToRecordsScreen, // 하트 버튼 클릭 시 기록 화면으로 이동
         ),
       ),
       body: Padding(
@@ -156,6 +191,26 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
                 label: const Text('Push Notification'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFAAACF),
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  textStyle: const TextStyle(fontSize: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 저장 버튼 추가
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
+                icon: const Icon(Icons.save, color: Colors.white),
+                label: const Text('저장'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green, // 저장 버튼 색상
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   textStyle: const TextStyle(fontSize: 18),
                   shape: RoundedRectangleBorder(
@@ -282,6 +337,61 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
       radius: 30,
       backgroundColor: const Color(0xFFFDCFE8),
       child: Icon(iconData, color: Colors.white, size: 30),
+    );
+  }
+}
+
+class RecordsScreen extends StatelessWidget {
+  const RecordsScreen({super.key});
+
+  // 로컬에 저장된 기록들을 불러오는 함수
+  Future<List<String>> _getSavedRecords() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final folder = Directory('${directory.path}/DailyTimeCapsule');
+    List<String> records = [];
+    if (await folder.exists()) {
+      final files = folder.listSync();
+      for (var file in files) {
+        if (file is File) {
+          final content = await file.readAsString();
+          records.add(content);
+        }
+      }
+    }
+    return records;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFDCFE8),
+        title:
+            const Text('Past Records', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+      ),
+      body: FutureBuilder<List<String>>(
+        future: _getSavedRecords(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Error loading records'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No records found'));
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text('Record ${index + 1}'),
+                  subtitle: Text(snapshot.data![index]),
+                );
+              },
+            );
+          }
+        },
+      ),
     );
   }
 }

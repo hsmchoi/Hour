@@ -40,6 +40,7 @@ dependencies:
   location: ^6.0.2
   flame: ^1.19.0
   flame_forge2d: ^0.18.2
+  path_provider: ^2.1.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
