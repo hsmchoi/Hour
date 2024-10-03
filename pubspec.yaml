@@ -41,6 +41,7 @@ dependencies:
   flame: ^1.19.0
   flame_forge2d: ^0.18.2
   path_provider: ^2.1.4
+  confetti: ^0.8.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
+import 'package:confetti/confetti.dart'; // Confetti 패키지 임포트
 
 void main() {
   runApp(const DailyTimeCapsuleApp());
@@ -42,11 +43,22 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   List<String> difficultyLevels = ['5', '4', '3', '2', '1'];
   List<String> whyKeywords = ['일정', '운동', '공부', '취미', '기타'];
 
+  // Confetti Controller 추가
+  late ConfettiController _confettiController;
+
   @override
   void initState() {
     super.initState();
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3)); // 3초 지속
     _setCurrentTime();
     _getCurrentLocation();
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose(); // 메모리 해제
+    super.dispose();
   }
 
   // 현재 시간을 가져오는 메소드
@@ -102,6 +114,34 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
     print('기록이 저장되었습니다: $filePath');
   }
 
+  // 저장 성공 시 보여줄 다이얼로그
+  Future<void> _showSuccessDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // 다이얼로그 외부 클릭 시 닫히지 않음
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('저장 완료!'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('기록이 성공적으로 저장되었습니다!'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('확인'),
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // 작성 내용을 저장하는 메소드
   void _saveData() async {
     String content = '''
@@ -112,6 +152,9 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
     Why: $selectedWhyKeyword
     ''';
     await _saveToFile(content);
+
+    _confettiController.play(); // Confetti 애니메이션 실행
+    _showSuccessDialog(); // 성공 다이얼로그 표시
   }
 
   // 하트 아이콘 클릭 시 저장된 기록 목록을 보는 화면으로 이동
@@ -139,104 +182,104 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
           onPressed: _navigateToRecordsScreen, // 하트 버튼 클릭 시 기록 화면으로 이동
         ),
       ),
-      body: SingleChildScrollView(
-        // 스크롤을 추가하는 부분
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // User Avatar
-              const Center(
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundImage: AssetImage('assets/avatar.png'),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // When (현재 시간)
-              _buildDisplayField('When', currentTime ?? '시간 가져오는 중...'),
-
-              // Where (현재 위치)
-              _buildDisplayField('Where', currentLocation ?? '위치 가져오는 중...'),
-
-              // What (사용자가 기록하는 부분)
-              _buildTextInputField('What (현재 하는 일)', whatController),
-
-              // How (난이도 설정)
-              _buildDropdownField(
-                  'How (난이도 선택)', difficultyLevels, selectedDifficulty,
-                  (newValue) {
-                setState(() {
-                  selectedDifficulty = newValue;
-                });
-              }),
-
-              // Why (사용자가 미리 지정한 키워드 선택)
-              _buildDropdownField(
-                  'Why (이유 선택)', whyKeywords, selectedWhyKeyword, (newValue) {
-                setState(() {
-                  selectedWhyKeyword = newValue;
-                });
-              }),
-
-              const SizedBox(height: 20),
-
-              // Push Notification Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Handle push notifications
-                  },
-                  icon: const Icon(Icons.notifications, color: Colors.white),
-                  label: const Text('Push Notification'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFAAACF),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 저장 버튼 추가
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
-                  icon: const Icon(Icons.save, color: Colors.white),
-                  label: const Text('저장'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // 저장 버튼 색상
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Emoticon Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            // 스크롤을 추가하는 부분
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
                 children: [
-                  _buildEmoticonButton(Icons.favorite),
-                  _buildEmoticonButton(Icons.thumb_up),
-                  _buildEmoticonButton(Icons.thumb_down),
-                  _buildEmoticonButton(Icons.mood),
+                  // User Avatar
+                  const Center(
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: AssetImage('assets/avatar.png'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // When (현재 시간)
+                  _buildDisplayField('When', currentTime ?? '시간 가져오는 중...'),
+
+                  // Where (현재 위치)
+                  _buildDisplayField(
+                      'Where', currentLocation ?? '위치 가져오는 중...'),
+
+                  // What (사용자가 기록하는 부분)
+                  _buildTextInputField('What (현재 하는 일)', whatController),
+
+                  // How (난이도 설정)
+                  _buildDropdownField(
+                      'How (난이도 선택)', difficultyLevels, selectedDifficulty,
+                      (newValue) {
+                    setState(() {
+                      selectedDifficulty = newValue;
+                    });
+                  }),
+
+                  // Why (사용자가 미리 지정한 키워드 선택)
+                  _buildDropdownField(
+                      'Why (이유 선택)', whyKeywords, selectedWhyKeyword,
+                      (newValue) {
+                    setState(() {
+                      selectedWhyKeyword = newValue;
+                    });
+                  }),
+
+                  const SizedBox(height: 20),
+
+                  // 저장 버튼 추가
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
+                      icon: const Icon(Icons.save, color: Colors.white),
+                      label: const Text('저장'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green, // 저장 버튼 색상
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        textStyle: const TextStyle(fontSize: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Emoticon Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildEmoticonButton(Icons.favorite),
+                      _buildEmoticonButton(Icons.thumb_up),
+                      _buildEmoticonButton(Icons.thumb_down),
+                      _buildEmoticonButton(Icons.mood),
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+
+          // Confetti 애니메이션
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _confettiController,
+              blastDirectionality: BlastDirectionality.explosive, // 모든 방향으로 날림
+              shouldLoop: false, // 반복 여부
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -344,42 +387,24 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   }
 }
 
-class RecordsScreen extends StatefulWidget {
+class RecordsScreen extends StatelessWidget {
   const RecordsScreen({super.key});
 
-  @override
-  _RecordsScreenState createState() => _RecordsScreenState();
-}
-
-class _RecordsScreenState extends State<RecordsScreen> {
-  List<File> _files = [];
-
   // 로컬에 저장된 기록들을 불러오는 함수
-  Future<void> _getSavedRecords() async {
+  Future<List<String>> _getSavedRecords() async {
     final directory = await getApplicationDocumentsDirectory();
     final folder = Directory('${directory.path}/DailyTimeCapsule');
+    List<String> records = [];
     if (await folder.exists()) {
-      final files = folder.listSync().whereType<File>().toList();
-      setState(() {
-        _files = files;
-      });
+      final files = folder.listSync();
+      for (var file in files) {
+        if (file is File) {
+          final content = await file.readAsString();
+          records.add(content);
+        }
+      }
     }
-  }
-
-  // 기록 삭제 함수
-  Future<void> _deleteRecord(File file) async {
-    try {
-      await file.delete();
-      _getSavedRecords(); // 삭제 후 기록 목록 갱신
-    } catch (e) {
-      print('삭제 중 오류 발생: $e');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _getSavedRecords(); // 화면 초기화 시 기록 불러오기
+    return records;
   }
 
   @override
@@ -391,31 +416,28 @@ class _RecordsScreenState extends State<RecordsScreen> {
             const Text('Past Records', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
-      body: _files.isEmpty
-          ? const Center(child: Text('No records found'))
-          : ListView.builder(
-              itemCount: _files.length,
+      body: FutureBuilder<List<String>>(
+        future: _getSavedRecords(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Error loading records'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No records found'));
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                File file = _files[index];
                 return ListTile(
                   title: Text('Record ${index + 1}'),
-                  subtitle: FutureBuilder<String>(
-                    future: file.readAsString(),
-                    builder: (context, snapshot) {
-                      return Text(
-                        snapshot.data ?? 'Loading...',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    },
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteRecord(file), // 삭제 버튼 클릭 시
-                  ),
+                  subtitle: Text(snapshot.data![index]),
                 );
               },
-            ),
+            );
+          }
+        },
+      ),
     );
   }
 }
