@@ -1,3 +1,4 @@
+import 'dart:async'; // Timer 클래스 사용을 위한 임포트
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -41,10 +42,12 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   TextEditingController whatController = TextEditingController();
 
   List<String> difficultyLevels = ['5', '4', '3', '2', '1'];
-  List<String> whyKeywords = ['일정', '운동', '공부', '취미', '기타'];
+  List<String> whyKeywords = ['Schedule', 'exercise', 'Study', 'hobby', 'etc'];
 
-  // Confetti Controller 추가
   late ConfettiController _confettiController;
+  Timer? _timer;
+  bool _isSaveButtonEnabled = true; // 버튼 활성화 여부
+  int _secondsRemaining = 0; // 남은 시간 (초)
 
   @override
   void initState() {
@@ -58,6 +61,7 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   @override
   void dispose() {
     _confettiController.dispose(); // 메모리 해제
+    _timer?.cancel(); // 타이머 해제
     super.dispose();
   }
 
@@ -101,7 +105,7 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
 
   // 로컬 저장소에 파일을 저장하는 메소드
   Future<void> _saveToFile(String content) async {
-    final directory = await getApplicationDocumentsDirectory(); // 저장 폴더 가져오기
+    final directory = await getApplicationDocumentsDirectory();
     final folder = Directory('${directory.path}/DailyTimeCapsule');
     if (!(await folder.exists())) {
       await folder.create(recursive: true); // 폴더가 없으면 생성
@@ -155,6 +159,27 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
 
     _confettiController.play(); // Confetti 애니메이션 실행
     _showSuccessDialog(); // 성공 다이얼로그 표시
+
+    _startTimer(); // 1시간 타이머 시작
+  }
+
+  // 타이머 시작 함수 (1시간 동안 버튼 비활성화)
+  void _startTimer() {
+    setState(() {
+      _isSaveButtonEnabled = false; // 버튼 비활성화
+      _secondsRemaining = 3600; // 1시간 = 3600초
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_secondsRemaining > 0) {
+          _secondsRemaining--;
+        } else {
+          _isSaveButtonEnabled = true; // 버튼 활성화
+          timer.cancel(); // 타이머 취소
+        }
+      });
+    });
   }
 
   // 하트 아이콘 클릭 시 저장된 기록 목록을 보는 화면으로 이동
@@ -185,12 +210,10 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            // 스크롤을 추가하는 부분
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // User Avatar
                   const Center(
                     child: CircleAvatar(
                       radius: 60,
@@ -207,12 +230,11 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
                       'Where', currentLocation ?? '위치 가져오는 중...'),
 
                   // What (사용자가 기록하는 부분)
-                  _buildTextInputField('What (현재 하는 일)', whatController),
+                  _buildTextInputField('What (Current Task)', whatController),
 
                   // How (난이도 설정)
-                  _buildDropdownField(
-                      'How (난이도 선택)', difficultyLevels, selectedDifficulty,
-                      (newValue) {
+                  _buildDropdownField('How (Select Difficulty)',
+                      difficultyLevels, selectedDifficulty, (newValue) {
                     setState(() {
                       selectedDifficulty = newValue;
                     });
@@ -220,7 +242,7 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
 
                   // Why (사용자가 미리 지정한 키워드 선택)
                   _buildDropdownField(
-                      'Why (이유 선택)', whyKeywords, selectedWhyKeyword,
+                      'Why (Select Reason)', whyKeywords, selectedWhyKeyword,
                       (newValue) {
                     setState(() {
                       selectedWhyKeyword = newValue;
@@ -229,15 +251,21 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
 
                   const SizedBox(height: 20),
 
-                  // 저장 버튼 추가
+                  // 저장 버튼
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
+                      onPressed: _isSaveButtonEnabled
+                          ? _saveData
+                          : null, // 버튼 활성화 여부에 따라 클릭 가능
                       icon: const Icon(Icons.save, color: Colors.white),
-                      label: const Text('저장'),
+                      label: _isSaveButtonEnabled
+                          ? const Text('저장')
+                          : Text(
+                              '남은 시간: ${_secondsRemaining ~/ 60}:${(_secondsRemaining % 60).toString().padLeft(2, '0')}'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green, // 저장 버튼 색상
+                        backgroundColor:
+                            _isSaveButtonEnabled ? Colors.green : Colors.grey,
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
                         textStyle: const TextStyle(fontSize: 18),
                         shape: RoundedRectangleBorder(
@@ -269,8 +297,8 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
             alignment: Alignment.topCenter,
             child: ConfettiWidget(
               confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive, // 모든 방향으로 날림
-              shouldLoop: false, // 반복 여부
+              blastDirectionality: BlastDirectionality.explosive,
+              shouldLoop: false,
               colors: const [
                 Colors.green,
                 Colors.blue,
