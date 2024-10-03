@@ -97,6 +97,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.3+3"
+  flame:
+    dependency: "direct main"
+    description:
+      name: flame
+      sha256: e6873a8540a197a9bfe251e10c9e1f200329041d6e6d70df2cf38aa681cf2ef7
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.19.0"
+  flame_forge2d:
+    dependency: "direct main"
+    description:
+      name: flame_forge2d
+      sha256: c233dde1600c0e58391969c74a64a4775affb1dbe34a6d7dbca78e137822b07f
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.2"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -128,6 +144,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  forge2d:
+    dependency: transitive
+    description:
+      name: forge2d
+      sha256: "6aac85f1cb9f7e3720bff5d6884ff2e1bcb74402e6fe271599b7b1f65574f5e2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.1"
   http:
     dependency: transitive
     description:
@@ -312,6 +336,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  ordered_set:
+    dependency: transitive
+    description:
+      name: ordered_set
+      sha256: "3129515e563a14817adebbdeee2acbb845fc69b6fc99a94349b641d1c829d5cd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   path:
     dependency: transitive
     description:

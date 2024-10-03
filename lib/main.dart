@@ -7,7 +7,7 @@ void main() {
 }
 
 class DailyTimeCapsuleApp extends StatelessWidget {
-  const DailyTimeCapsuleApp({Key? key}) : super(key: key);
+  const DailyTimeCapsuleApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class DailyTimeCapsuleApp extends StatelessWidget {
 }
 
 class RecordEntryScreen extends StatefulWidget {
-  const RecordEntryScreen({Key? key}) : super(key: key);
+  const RecordEntryScreen({super.key});
 
   @override
   _RecordEntryScreenState createState() => _RecordEntryScreenState();
@@ -58,30 +58,30 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   // 현재 위치(GPS)를 가져오는 메소드
   Future<void> _getCurrentLocation() async {
     Location location = Location();
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-    LocationData _locationData;
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    LocationData locationData;
 
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
         return;
       }
     }
 
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
         return;
       }
     }
 
-    _locationData = await location.getLocation();
+    locationData = await location.getLocation();
     setState(() {
       currentLocation =
-          '위도: ${_locationData.latitude}, 경도: ${_locationData.longitude}';
+          '위도: ${locationData.latitude}, 경도: ${locationData.longitude}';
     });
   }
 
@@ -109,14 +109,14 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
         child: Column(
           children: [
             // User Avatar
-            Center(
-              child: const CircleAvatar(
+            const Center(
+              child: CircleAvatar(
                 radius: 60,
                 backgroundImage: AssetImage('assets/avatar.png'),
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // When (현재 시간)
             _buildDisplayField('When', currentTime ?? '시간 가져오는 중...'),
 
@@ -127,21 +127,24 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
             _buildTextInputField('What (현재 하는 일)', whatController),
 
             // How (난이도 설정)
-            _buildDropdownField('How (난이도 선택)', difficultyLevels, selectedDifficulty, (newValue) {
+            _buildDropdownField(
+                'How (난이도 선택)', difficultyLevels, selectedDifficulty,
+                (newValue) {
               setState(() {
                 selectedDifficulty = newValue;
               });
             }),
 
             // Why (사용자가 미리 지정한 키워드 선택)
-            _buildDropdownField('Why (이유 선택)', whyKeywords, selectedWhyKeyword, (newValue) {
+            _buildDropdownField('Why (이유 선택)', whyKeywords, selectedWhyKeyword,
+                (newValue) {
               setState(() {
                 selectedWhyKeyword = newValue;
               });
             }),
 
             const SizedBox(height: 20),
-            
+
             // Push Notification Button
             SizedBox(
               width: double.infinity,
@@ -163,7 +166,7 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
             ),
 
             const SizedBox(height: 20),
-            
+
             // Emoticon Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -236,8 +239,8 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
   }
 
   // 기존 디자인 적용된 드롭다운 필드 (How, Why)
-  Widget _buildDropdownField(
-      String label, List<String> items, String? selectedItem, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownField(String label, List<String> items,
+      String? selectedItem, ValueChanged<String?> onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
