@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart'; // 로컬 파일 경로를 가져오기 위한 패키지
+import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 
@@ -139,100 +139,103 @@ class _RecordEntryScreenState extends State<RecordEntryScreen> {
           onPressed: _navigateToRecordsScreen, // 하트 버튼 클릭 시 기록 화면으로 이동
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // User Avatar
-            const Center(
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: AssetImage('assets/avatar.png'),
+      body: SingleChildScrollView(
+        // 스크롤을 추가하는 부분
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // User Avatar
+              const Center(
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: AssetImage('assets/avatar.png'),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // When (현재 시간)
-            _buildDisplayField('When', currentTime ?? '시간 가져오는 중...'),
+              // When (현재 시간)
+              _buildDisplayField('When', currentTime ?? '시간 가져오는 중...'),
 
-            // Where (현재 위치)
-            _buildDisplayField('Where', currentLocation ?? '위치 가져오는 중...'),
+              // Where (현재 위치)
+              _buildDisplayField('Where', currentLocation ?? '위치 가져오는 중...'),
 
-            // What (사용자가 기록하는 부분)
-            _buildTextInputField('What (현재 하는 일)', whatController),
+              // What (사용자가 기록하는 부분)
+              _buildTextInputField('What (현재 하는 일)', whatController),
 
-            // How (난이도 설정)
-            _buildDropdownField(
-                'How (난이도 선택)', difficultyLevels, selectedDifficulty,
-                (newValue) {
-              setState(() {
-                selectedDifficulty = newValue;
-              });
-            }),
+              // How (난이도 설정)
+              _buildDropdownField(
+                  'How (난이도 선택)', difficultyLevels, selectedDifficulty,
+                  (newValue) {
+                setState(() {
+                  selectedDifficulty = newValue;
+                });
+              }),
 
-            // Why (사용자가 미리 지정한 키워드 선택)
-            _buildDropdownField('Why (이유 선택)', whyKeywords, selectedWhyKeyword,
-                (newValue) {
-              setState(() {
-                selectedWhyKeyword = newValue;
-              });
-            }),
+              // Why (사용자가 미리 지정한 키워드 선택)
+              _buildDropdownField(
+                  'Why (이유 선택)', whyKeywords, selectedWhyKeyword, (newValue) {
+                setState(() {
+                  selectedWhyKeyword = newValue;
+                });
+              }),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Push Notification Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Handle push notifications
-                },
-                icon: const Icon(Icons.notifications, color: Colors.white),
-                label: const Text('Push Notification'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFAAACF),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  textStyle: const TextStyle(fontSize: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              // Push Notification Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // Handle push notifications
+                  },
+                  icon: const Icon(Icons.notifications, color: Colors.white),
+                  label: const Text('Push Notification'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFAAACF),
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    textStyle: const TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // 저장 버튼 추가
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
-                icon: const Icon(Icons.save, color: Colors.white),
-                label: const Text('저장'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green, // 저장 버튼 색상
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  textStyle: const TextStyle(fontSize: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              // 저장 버튼 추가
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _saveData, // 저장 버튼 클릭 시 데이터를 저장
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  label: const Text('저장'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green, // 저장 버튼 색상
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    textStyle: const TextStyle(fontSize: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Emoticon Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildEmoticonButton(Icons.favorite),
-                _buildEmoticonButton(Icons.thumb_up),
-                _buildEmoticonButton(Icons.thumb_down),
-                _buildEmoticonButton(Icons.mood),
-              ],
-            ),
-          ],
+              // Emoticon Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildEmoticonButton(Icons.favorite),
+                  _buildEmoticonButton(Icons.thumb_up),
+                  _buildEmoticonButton(Icons.thumb_down),
+                  _buildEmoticonButton(Icons.mood),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
