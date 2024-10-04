@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:confetti/confetti.dart'; // Confetti 패키지 임포트
+import 'package:confetti/confetti.dart';
+
+import 'pastrecordsscreen.dart'; // Confetti 패키지 임포트
 
 void main() {
   runApp(const DailyTimeCapsuleApp());
